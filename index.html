@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui/dist/semantic.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1.ui.header {
+            margin-top: 0;
+        }
+        img#bannerImage {
+            max-width: 100%;
+            max-height: 600px;
+            display: none;
+            margin: 20px auto;
+        }
+        .ui.input {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        input#userIdInput {
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        button#getBannerButton {
+            border-radius: 5px;
+        }
+        p#bannerMessage {
+            margin-top: 20px;
+        }
+        a#downloadButton {
+            display: none;
+        }
+    </style>
+    <title>Discord Banner Lookup</title>
+</head>
+<body>
+
+<div class="ui container">
+    <h1 class="ui header">Discord Banner Lookup</h1>
+    <div class="ui input">
+        <input id="userIdInput" type="text" placeholder="Enter User ID">
+        <button id="getBannerButton" class="ui primary button">Get Banner</button>
+    </div>
+    <div id="bannerContainer" class="ui segment" style="display: none;">
+        <img id="bannerImage" src="" alt="Banner">
+        <p id="bannerMessage"></p>
+        <a id="downloadButton" class="ui primary icon button">
+            <i class="download icon"></i>
+            Download Banner
+        </a>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/semantic-ui/dist/semantic.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#getBannerButton').click(function() {
+            var userId = $('#userIdInput').val();
+
+            if (!userId) {
+                alert("Please enter a valid User ID.");
+                return;
+            }
+
+            var apiUrl = `https://discordlookup.mesavirep.xyz/v1/user/${userId}`;
+
+            $.get(apiUrl, function(data) {
+                if (data.banner && data.banner.link) {
+                    var bannerUrl = data.banner.link;
+
+                    $('#bannerImage').attr('src', bannerUrl).css('display', 'block'); // Show the banner image
+                    $('#bannerContainer').show(); // Show the banner container
+                    $('#bannerMessage').text(""); // Clear the banner message
+                    $('#downloadButton').attr('href', bannerUrl).show(); // Show the button
+
+                    $('#downloadButton').click(function() {
+                        downloadBanner(bannerUrl);
+                    });
+                } else {
+                    $('#bannerMessage').text("This user does not have an image banner!"); // Display banner message
+                    $('#bannerImage').hide(); // Hide the banner image
+                    $('#bannerContainer').show(); // Show the banner container
+                    $('#downloadButton').hide(); // Hide the download button
+                }
+            }).fail(function() {
+                alert("Failed to fetch user data. Please check the User ID or try again later.");
+            });
+        });
+
+        function downloadBanner(url) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "blob";
+            xhr.onload = function() {
+                var blob = xhr.response;
+                var link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = "banner.png";
+                link.click();
+            };
+            xhr.send();
+        }
+    });
+</script>
+</body>
+</html>
